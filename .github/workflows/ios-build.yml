@@ -1,0 +1,64 @@
+name: Build and Upload iOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.27.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Create .env file
+        run: |
+          cat > .env << 'ENVEOF'
+          BASE_SERVICE_URL=https://miximike.com/
+          DEFAULT_DAYS_TO_NOTIFY=10
+          WORDPRESS_NOTIFICATION_CATEGORY_ID=54
+          WOOCOMMERCE_CONSUMER_KEY=ck_eb0c4aa99877a39ccbeae48006be26c31e276d14
+          WOOCOMMERCE_CONSUMER_SECRET=cs_091280b80fc57add0e19c5a976099742a6f4ea19
+          WOOCOMMERCE_EXCLUDE_PRODUCTS_ID=[279797]
+          WOOCOMMERCE_EXCLUDE_CATEGORIES_ID=[40, 41, 53]
+          WOOCOMMERCE_TODO_CATEGORY_ID=53
+          DISK_FOR_ALL_ID=255
+          WORDPRESS_ADMIN_TOKEN="ZGllZ29AZnJpam9sLmNsOjVfM09pWmFRMyF9UShlM04yMF82"
+          ENVEOF
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Setup App Store Connect API Key
+        run: |
+          mkdir -p ~/private_keys
+          echo '${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+
+      - name: Build iOS IPA
+        run: |
+          flutter build ipa --release \
+            --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload to App Store Connect
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file build/ios/ipa/*.ipa \
+            --apiKey ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
+            --apiIssuer ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        env:
+          API_PRIVATE_KEYS_DIR: ~/private_keys
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: miximike-ios-ipa
+          path: build/ios/ipa/*.ipa
