@@ -8,6 +8,9 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
 
+    env:
+      KEY_PATH: /Users/runner/private_keys
+
     steps:
       - uses: actions/checkout@v4
 
@@ -38,8 +41,9 @@ jobs:
 
       - name: Setup App Store Connect API Key
         run: |
-          mkdir -p ~/private_keys
-          echo '${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}' > ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          mkdir -p $KEY_PATH
+          echo '${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}' > $KEY_PATH/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
+          chmod 600 $KEY_PATH/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8
 
       - name: Build Flutter iOS (no codesign)
         run: flutter build ios --release --no-codesign
@@ -53,7 +57,8 @@ jobs:
             -archivePath build/ios/archive/Runner.xcarchive \
             -destination 'generic/platform=iOS' \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8 \
+            -allowProvisioningDeviceRegistration \
+            -authenticationKeyPath $KEY_PATH/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }} \
             CODE_SIGN_STYLE=Automatic \
@@ -66,7 +71,8 @@ jobs:
             -exportPath build/ios/ipa \
             -exportOptionsPlist ios/ExportOptions.plist \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8 \
+            -allowProvisioningDeviceRegistration \
+            -authenticationKeyPath $KEY_PATH/AuthKey_${{ secrets.APP_STORE_CONNECT_KEY_ID }}.p8 \
             -authenticationKeyID ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
             -authenticationKeyIssuerID ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
 
@@ -78,7 +84,7 @@ jobs:
             --apiKey ${{ secrets.APP_STORE_CONNECT_KEY_ID }} \
             --apiIssuer ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
         env:
-          API_PRIVATE_KEYS_DIR: ~/private_keys
+          API_PRIVATE_KEYS_DIR: /Users/runner/private_keys
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
