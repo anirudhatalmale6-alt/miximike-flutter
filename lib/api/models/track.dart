@@ -24,9 +24,9 @@ class Track with EquatableMixin {
   Track({
     required this.id,
     required this.name,
-    required this.url,
+    required String url,
     required this.product,
-  });
+  }) : url = url.startsWith('http://') ? url.replaceFirst('http://', 'https://') : url;
 
   @override
   List<Object> get props => [
