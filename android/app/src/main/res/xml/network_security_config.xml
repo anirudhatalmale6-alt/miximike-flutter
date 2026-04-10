@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Block cleartext (HTTP) traffic by default -->
+    <base-config cleartextTrafficPermitted="false" />
+    <!-- Allow cleartext only for miximike.com (WooCommerce download redirects) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">miximike.com</domain>
+    </domain-config>
+</network-security-config>
