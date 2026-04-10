@@ -58,9 +58,9 @@ dependencies:
   dio_cache_interceptor: ^3.5.1
   dio_cache_interceptor_hive_store: ^4.0.0
   path_provider: ^2.1.5
-  just_audio: ^0.9.46
+  just_audio: ^0.9.43
   just_audio_windows: ^0.2.2
-  just_audio_background: ^0.0.1-beta.17
+  just_audio_background: ^0.0.1-beta.14
   audio_service: ^0.18.16
   auto_animated: ^3.2.0
   cached_network_image: ^3.4.1
